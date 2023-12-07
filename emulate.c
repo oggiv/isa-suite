@@ -27,9 +27,9 @@ int main(int argc, char const *argv[])
 
   // manually inputing binaries for testing
   unsigned char testProgram[] = {
-    0b11000110, // put 6 in a
-    0b00001000, // copy reg[a] to reg[1]
-    0b00010001  // copy reg[1] to reg[2]
+    0b11000010, // put 2 in a
+    0b10100010, // a << (2)
+    0b10101001  // a >> (1)
   };
 
   // every position in reg is a CPU register
@@ -41,14 +41,15 @@ int main(int argc, char const *argv[])
   // run the program
   unsigned char inputByte;
   unsigned int opCode;
+  int imm;
+  int arg1;
+  int arg2;
   for (programCounter = 0; programCounter < sizeof(testProgram); programCounter++) {
 
     inputByte = testProgram[programCounter];
-    unsigned int opCode = (inputByte & 0b11000000) >> 6;
-
-    int imm;
-    int arg1 = (inputByte & 0b00111000) >> 3;
-    int arg2 = (inputByte & 0b00000111);
+    opCode = (inputByte & 0b11000000) >> 6;
+    arg1 = (inputByte & 0b00111000) >> 3;
+    arg2 = (inputByte & 0b00000111);
 
     switch (opCode) {
       case 0b00: // move
@@ -64,12 +65,47 @@ int main(int argc, char const *argv[])
         break;
 
       case 0b10: // functional operations
-        // code
+        // read arg1 to determine operation
+        switch (arg1) {
+          case 0b000: // add
+          // add the value of the accumulator and the value of the register and store the sum in the accumulator
+          reg[0] = reg[0] + reg[arg2];
+          break;
+        case 0b001: // subtract
+          // subtract the value of the accumulator with the value of the register and store the difference in the accumulator
+          reg[0] = reg[0] - reg[arg2];
+          break;
+        case 0b010: // and
+          // logical bitwise and the value in the accumulator and the value in the register and store the result in the accumulator
+          reg[0] = reg[0] & reg[arg2];
+          break;
+        case 0b011: // nor
+          // logical bitwise nor the value in the accumulator and the value in the register and store the result in the accumulator
+          reg[0] = ~(reg[0] | reg[arg2]);
+          break;
+        case 0b100: // shift left arithmetic
+          // arithmetically shift the value in the accumulator to the left by the amount given by the immediate value and store the result in the accumulator
+          reg[0] = reg[0] << arg2;
+          break;
+        case 0b101: // shift right arithmetic
+          // arithmetically shift the value in the accumulator to the right by the amount given by the immediate value and store the result in the accumulator
+          reg[0] = reg[0] >> arg2;
+          break;
+        case 0b110: // load word
+          // fetch the value in memory at the address which is the value in the register, and store it in the accumulator
+          break;
+        case 0b111: // store word
+          // store the value of the accumulator in memory on the address that is the value of the register
+          break;
+        default:
+          // invalid funct somehow
+          break;
+        }
         break;
 
       case 0b11: // write immediate
-        // code
-        imm = arg1 | arg2;
+        // store the unsigned immediate value in the accumulator
+        imm = (arg1 << 3) | arg2;
         reg[0] = imm;
         break;
 
