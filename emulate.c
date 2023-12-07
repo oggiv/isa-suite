@@ -19,3 +19,16 @@
   sw 10 111 reg - store word - store the value of the accumulator in memory on the address that is the value of the register
   wi 11 imm     - write immediate - store the unsigned immediate value in the accumulator
 */
+
+#include <stdio.h>
+
+int main(int argc, char const *argv[])
+{
+  unsigned char inputByte = 0b01000000;
+
+  unsigned int opCode = (inputByte & 0b11000000) >> 6;
+
+  printf("%d\n", opCode);
+
+  return 0;
+}
