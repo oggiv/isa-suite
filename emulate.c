@@ -22,42 +22,70 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 #define ACC 0
 #define DATA_WIDTH 16
+#define MAX_INSTRUCTIONS 100
 
 int main(int argc, char const *argv[])
 {
-
-  // manually inputing binaries for testing
-  unsigned char testProgram[] = {
-    0b11000010, // put (2) in a
-    0b10100010, // a << (2)
-    0b10101001, // a >> (1)
-    0b00010000, // copy a to 2
-    0b10111010, // store a in address of 2
-    0b11000000, // put (0) in a
-    0b10110010  // load address of 2 into a
-  };
+  bool readFile = false;
 
   // calloc initializes every cell to 0
-  int* RAM = (int*) calloc(2^DATA_WIDTH, sizeof(int));
+  int16_t* RAM = (int16_t*) calloc(2^DATA_WIDTH, sizeof(int16_t));
+  if (RAM == NULL) {
+    perror("Error allocating RAM");
+    return 1;
+  }
+
+  int instructionsRead = 0;
+
+  if (0 < argc) {
+    for (int i = 0; i < argc; i++) {
+      if (argv[i][0] == '-') {
+        // flag option
+        // not implemented yet
+      }
+      else {
+        // input binary file
+        readFile = true;
+        FILE* fd = fopen(argv[i], "r");
+        if (fd == NULL) {
+          perror("Error opening file");
+          return 1;
+        }
+        //instructionsRead = fread(RAM, sizeof(uint16_t), MAX_INSTRUCTIONS, fd);
+        fclose(fd);
+      }
+    }
+  }
 
   // every position in reg is a CPU register
-  signed char reg[8];
+  int16_t reg[8];
+  for (int i = 0; i < sizeof(reg); i++) {
+    reg[i] = 0;
+  }
 
   // PC keeps track of which instruction the program is on
-  unsigned int programCounter;
+  uint16_t programCounter;
 
   // run the program
-  unsigned char inputByte;
+  uint8_t inputByte;
   unsigned int opCode;
   int imm;
   int arg1;
   int arg2;
-  for (programCounter = 0; programCounter < sizeof(testProgram); programCounter++) {
+  for (programCounter = 0; programCounter < instructionsRead; programCounter++) {
 
-    inputByte = testProgram[programCounter];
+    if (programCounter % 2 == 0) {
+      inputByte = (uint8_t) RAM[programCounter] & 0xFF;
+    }
+    else {
+      inputByte = (uint8_t) RAM[programCounter] >> 8;
+    }
+
     opCode = (inputByte & 0b11000000) >> 6;
     arg1 = (inputByte & 0b00111000) >> 3;
     arg2 = (inputByte & 0b00000111);
