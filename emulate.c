@@ -26,15 +26,17 @@
 #include <stdint.h>
 
 #define ACC 0
-#define DATA_WIDTH 16
-#define MAX_INSTRUCTIONS 100
+#define MAX_INSTRUCTIONS 10
 
 int main(int argc, char const *argv[])
 {
   bool readFile = false;
 
   // calloc initializes every cell to 0
-  int16_t* RAM = (int16_t*) calloc(2^DATA_WIDTH, sizeof(int16_t));
+  //int16_t* RAM = (int16_t*) calloc(2^16, sizeof(int16_t));
+  uint16_t RAM[1024];
+  for (int i = 0; i < 1024; i++) {RAM[i] = 0;}
+
   if (RAM == NULL) {
     perror("Error allocating RAM");
     return 1;
@@ -43,21 +45,25 @@ int main(int argc, char const *argv[])
   int instructionsRead = 0;
 
   if (0 < argc) {
-    for (int i = 0; i < argc; i++) {
+    for (int i = 1; i < argc; i++) {
       if (argv[i][0] == '-') {
         // flag option
         // not implemented yet
       }
       else {
         // input binary file
+        printf("%s\n", argv[i]);
         readFile = true;
-        FILE* fd = fopen(argv[i], "r");
+        FILE* fd = fopen(argv[i], "rb");
         if (fd == NULL) {
           perror("Error opening file");
           return 1;
         }
-        //instructionsRead = fread(RAM, sizeof(uint16_t), MAX_INSTRUCTIONS, fd);
+        instructionsRead = fread(RAM, sizeof(uint16_t), 1, fd); // MAX_INSTRUCTIONS
+        printf("Instructions read: %d\n", instructionsRead);
+        printf("Value in RAM[0]: %d\n", RAM[0]);
         fclose(fd);
+        break;
       }
     }
   }
@@ -68,23 +74,23 @@ int main(int argc, char const *argv[])
     reg[i] = 0;
   }
 
-  // PC keeps track of which instruction the program is on
-  uint16_t programCounter;
-
   // run the program
   uint8_t inputByte;
   unsigned int opCode;
   int imm;
   int arg1;
   int arg2;
-  for (programCounter = 0; programCounter < instructionsRead; programCounter++) {
+  uint16_t programCounter;
+  for (programCounter = 0; programCounter < 10; programCounter++) { // < instructionsRead
 
     if (programCounter % 2 == 0) {
-      inputByte = (uint8_t) RAM[programCounter] & 0xFF;
+      inputByte = (uint8_t) (RAM[programCounter] & 0xFF);
     }
     else {
-      inputByte = (uint8_t) RAM[programCounter] >> 8;
+      inputByte = (uint8_t) (RAM[programCounter / 2] >> 8);
     }
+
+    printf("PC: %d, PCmod2: %d, PC/2: %d, Input byte: %d\n", programCounter, programCounter%2, programCounter/2, inputByte);
 
     opCode = (inputByte & 0b11000000) >> 6;
     arg1 = (inputByte & 0b00111000) >> 3;
@@ -144,6 +150,7 @@ int main(int argc, char const *argv[])
       case 0b11: // write immediate
         // store the unsigned immediate value in the accumulator
         imm = (arg1 << 3) | arg2;
+        printf("Writing %d to accumulator\n", imm);
         reg[ACC] = imm;
         break;
       default: // unknown opcode
@@ -162,11 +169,12 @@ int main(int argc, char const *argv[])
   printf(" $6 %d\n", reg[6]);
   printf(" $7 %d\n\n", reg[7]);
 
-  char userInput[DATA_WIDTH / 4];
+  char userInput[4];
   int charsEntered = 0;
   int inspectAddress = 0;
 
-  while (1) {
+  /*bool readInput = true;
+  while (readInput) {
     scanf("%s", userInput);
     for (int i = 0; i < (DATA_WIDTH / 4); i++) {
       if ('0' <= userInput[i] && userInput[i] <= '9') {
@@ -182,15 +190,15 @@ int main(int argc, char const *argv[])
         charsEntered++;
       }
       if (userInput[i] == 'q') {
-        free(RAM);
-        return 0;
+        readInput = false;
       }
     }
     printf(" : %d\n", RAM[inspectAddress]);
     inspectAddress = 0;
     charsEntered = 0;
   }
+  */
 
-  free(RAM);
+  //free(RAM);
   return 0;
 }
