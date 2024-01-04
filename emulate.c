@@ -42,7 +42,7 @@ int main(int argc, char const *argv[])
     return 1;
   }
 
-  int instructionsRead = 0;
+  size_t instructionsRead = 0;
 
   if (0 < argc) {
     for (int i = 1; i < argc; i++) {
@@ -59,8 +59,8 @@ int main(int argc, char const *argv[])
           perror("Error opening file");
           return 1;
         }
-        instructionsRead = fread(RAM, sizeof(uint16_t), MAX_INSTRUCTIONS, fd);
-        printf("Instructions read: %d\n", instructionsRead * 2);
+        instructionsRead = fread(RAM, sizeof(uint8_t), MAX_INSTRUCTIONS, fd);
+        printf("Instructions read: %zu\n", instructionsRead);
         fclose(fd);
         break;
       }
@@ -80,15 +80,13 @@ int main(int argc, char const *argv[])
   int arg1;
   int arg2;
   uint16_t programCounter;
-  for (programCounter = 0; programCounter < 10; programCounter++) { // < instructionsRead
-
-    printf("%d ", RAM[0]);
+  for (programCounter = 0; programCounter < instructionsRead; programCounter++) {
 
     if (programCounter % 2 == 0) {
-      inputByte = (uint8_t) (RAM[programCounter] & 0xFF);
+      inputByte = (uint8_t) (RAM[programCounter / 2] >> 8);
     }
     else {
-      inputByte = (uint8_t) (RAM[programCounter / 2] >> 8);
+      inputByte = (uint8_t) (RAM[programCounter] & 0xFF);
     }
 
     printf("PC: %d, PCmod2: %d, PC/2: %d, Input byte: %d\n", programCounter, programCounter%2, programCounter/2, inputByte);
