@@ -34,8 +34,8 @@ int main(int argc, char const *argv[])
 
   // calloc initializes every cell to 0
   //int16_t* RAM = (int16_t*) calloc(2^16, sizeof(int16_t));
-  uint16_t RAM[1024];
-  for (int i = 0; i < 1024; i++) {RAM[i] = 0;}
+  uint16_t RAM[100];
+  for (int i = 0; i < 100; i++) {RAM[i] = 0;}
 
   if (RAM == NULL) {
     perror("Error allocating RAM");
@@ -59,9 +59,8 @@ int main(int argc, char const *argv[])
           perror("Error opening file");
           return 1;
         }
-        instructionsRead = fread(RAM, sizeof(uint16_t), 1, fd); // MAX_INSTRUCTIONS
-        printf("Instructions read: %d\n", instructionsRead);
-        printf("Value in RAM[0]: %d\n", RAM[0]);
+        instructionsRead = fread(RAM, sizeof(uint16_t), MAX_INSTRUCTIONS, fd);
+        printf("Instructions read: %d\n", instructionsRead * 2);
         fclose(fd);
         break;
       }
@@ -70,7 +69,7 @@ int main(int argc, char const *argv[])
 
   // every position in reg is a CPU register
   int16_t reg[8];
-  for (int i = 0; i < sizeof(reg); i++) {
+  for (int i = 0; i < (sizeof(reg) / sizeof(int16_t)); i++) {
     reg[i] = 0;
   }
 
@@ -82,6 +81,8 @@ int main(int argc, char const *argv[])
   int arg2;
   uint16_t programCounter;
   for (programCounter = 0; programCounter < 10; programCounter++) { // < instructionsRead
+
+    printf("%d ", RAM[0]);
 
     if (programCounter % 2 == 0) {
       inputByte = (uint8_t) (RAM[programCounter] & 0xFF);
@@ -150,7 +151,6 @@ int main(int argc, char const *argv[])
       case 0b11: // write immediate
         // store the unsigned immediate value in the accumulator
         imm = (arg1 << 3) | arg2;
-        printf("Writing %d to accumulator\n", imm);
         reg[ACC] = imm;
         break;
       default: // unknown opcode
