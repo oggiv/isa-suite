@@ -28,13 +28,10 @@
 #define ACC 0
 #define MAX_INSTRUCTIONS 10
 
-int main(int argc, char const *argv[])
-{
-  bool readFile = false;
-
+int main(int argc, char const *argv[]) {
+  
   // calloc initializes every cell to 0
   int16_t* RAM = (int16_t*) calloc((1 << 16), sizeof(int16_t));
-  //uint16_t RAM[100];
   for (int i = 0; i < 100; i++) {RAM[i] = 0;}
 
   if (RAM == NULL) {
@@ -48,12 +45,10 @@ int main(int argc, char const *argv[])
     for (int i = 1; i < argc; i++) {
       if (argv[i][0] == '-') {
         // flag option
-        // not implemented yet
+        // no flags implemented yet
       }
       else {
         // input binary file
-        printf("%s\n", argv[i]);
-        readFile = true;
         FILE* fd = fopen(argv[i], "rb");
         if (fd == NULL) {
           perror("Error opening file");
@@ -72,10 +67,6 @@ int main(int argc, char const *argv[])
   for (int i = 0; i < (sizeof(reg) / sizeof(int16_t)); i++) {
     reg[i] = 0;
   }
-
-  /*printf("RAM[0] : %u\n", (uint16_t) RAM[0]);
-  printf("RAM[1] : %u\n", (uint16_t) RAM[1]);
-  printf("RAM[2] : %u\n", (uint16_t) RAM[2]);*/
 
   // run the program
   uint8_t inputByte;
