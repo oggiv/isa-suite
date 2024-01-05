@@ -23,6 +23,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+
+#define MAX_INSTRUCTIONS 200
 
 int main(int argc, char const *argv[]) {
 
@@ -49,6 +52,9 @@ int main(int argc, char const *argv[]) {
     perror("No file given");
   }
 
+  int instructionCounter = 0:
+  uint8_t instructions[MAX_INSTRUCTIONS];
+
   char* line = NULL;
   size_t len = 0;
   ssize_t read;
@@ -58,6 +64,7 @@ int main(int argc, char const *argv[]) {
   }
 
   fclose(fd);
+  free(instructions);
   if (line) {free(line);}
   return 0;
 }
