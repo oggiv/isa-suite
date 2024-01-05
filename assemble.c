@@ -26,6 +26,8 @@
 
 int main(int argc, char const *argv[]) {
 
+  FILE* fd = NULL;
+
   if (0 < argc) {
     for (int i = 1; i < argc; i++) {
       if (argv[i][0] == '-') {
@@ -34,7 +36,7 @@ int main(int argc, char const *argv[]) {
       }
       else {
         // input binary file
-        FILE* fd = fopen(argv[i], "r");
+        fd = fopen(argv[i], "r");
         if (fd == NULL) {
           perror("Error opening file");
           return 1;
@@ -47,7 +49,7 @@ int main(int argc, char const *argv[]) {
     perror("No file given");
   }
 
-  char * line = NULL;
+  char* line = NULL;
   size_t len = 0;
   ssize_t read;
 
