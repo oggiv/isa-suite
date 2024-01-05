@@ -33,8 +33,8 @@ int main(int argc, char const *argv[])
   bool readFile = false;
 
   // calloc initializes every cell to 0
-  //int16_t* RAM = (int16_t*) calloc(2^16, sizeof(int16_t));
-  uint16_t RAM[100];
+  int16_t* RAM = (int16_t*) calloc((1 << 16), sizeof(int16_t));
+  //uint16_t RAM[100];
   for (int i = 0; i < 100; i++) {RAM[i] = 0;}
 
   if (RAM == NULL) {
@@ -73,6 +73,10 @@ int main(int argc, char const *argv[])
     reg[i] = 0;
   }
 
+  /*printf("RAM[0] : %u\n", (uint16_t) RAM[0]);
+  printf("RAM[1] : %u\n", (uint16_t) RAM[1]);
+  printf("RAM[2] : %u\n", (uint16_t) RAM[2]);*/
+
   // run the program
   uint8_t inputByte;
   unsigned int opCode;
@@ -83,13 +87,13 @@ int main(int argc, char const *argv[])
   for (programCounter = 0; programCounter < instructionsRead; programCounter++) {
 
     if (programCounter % 2 == 0) {
-      inputByte = (uint8_t) (RAM[programCounter / 2] >> 8);
+      inputByte = (uint8_t) (RAM[programCounter / 2] & 0xFF);
     }
     else {
-      inputByte = (uint8_t) (RAM[programCounter] & 0xFF);
+      inputByte = (uint8_t) (RAM[programCounter / 2] >> 8);
     }
 
-    printf("PC: %d, PCmod2: %d, PC/2: %d, Input byte: %d\n", programCounter, programCounter%2, programCounter/2, inputByte);
+    printf("PC: %d, PCmod2: %d, PC/2: %d, Input byte: %#02x\n", programCounter, programCounter%2, programCounter/2, inputByte);
 
     opCode = (inputByte & 0b11000000) >> 6;
     arg1 = (inputByte & 0b00111000) >> 3;
@@ -156,7 +160,7 @@ int main(int argc, char const *argv[])
     }
   }
 
-  printf("PC: %d\n", programCounter);
+  printf("\nPC: %d\n", programCounter);
   printf("Registers\n");
   printf(" $a %d\n", reg[ACC]);
   printf(" $1 %d\n", reg[1]);
@@ -197,6 +201,6 @@ int main(int argc, char const *argv[])
   }
   */
 
-  //free(RAM);
+  free(RAM);
   return 0;
 }
