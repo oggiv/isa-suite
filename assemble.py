@@ -91,18 +91,18 @@ J  = []
 # Add operations to respective instruction type array
 for oper in valid_operations:
     current_oper = operations[oper]
-    if current_oper['format'] is 'R':
-        if current_oper['style'] is 0: R0.append(oper)
-        if current_oper['style'] is 1: R1.append(oper)
-        if current_oper['style'] is 2: R2.append(oper)
+    if current_oper['format'] == 'R':
+        if current_oper['style'] == 0: R0.append(oper)
+        if current_oper['style'] == 1: R1.append(oper)
+        if current_oper['style'] == 2: R2.append(oper)
         
-    if current_oper['format'] is 'I':
-        if current_oper['style'] is 1: I1.append(oper)
-        if current_oper['style'] is 3: I3.append(oper)
-        if current_oper['style'] is 4: I4.append(oper)
-        if current_oper['style'] is 5: I5.append(oper)
+    if current_oper['format'] == 'I':
+        if current_oper['style'] == 1: I1.append(oper)
+        if current_oper['style'] == 3: I3.append(oper)
+        if current_oper['style'] == 4: I4.append(oper)
+        if current_oper['style'] == 5: I5.append(oper)
     
-    if current_oper['format'] is 'J': J.append(oper) 
+    if current_oper['format'] == 'J': J.append(oper) 
 
 
 # Registers hashtable
@@ -182,8 +182,8 @@ with open(filename, 'r') as assembly_file:
         if current_inst[0] == '\n': 
             continue
         Memory.append(current_inst)
-        if current_inst.label is not '':
-            if current_inst.operation is not '':
+        if not current_inst.label == '':
+            if not current_inst.operation == '':
                 Labels[current_inst.label] = line_address
             else :  
                 Labels[current_inst.label] = line_address
@@ -194,15 +194,15 @@ with open(filename, 'r') as assembly_file:
 with open('mcode_file.txt','w') as mcode_file: # opening the output file !!! As a text file !?!?
     PC = int(init_address,16)   #converting PC to decimal for ease of use to be used in arithmatic operations
     for inst in Memory:
-        if inst.operation is '':
+        if inst.operation == '':
             continue
         op = operations[inst.operation]
         PC += 4
         
-        if op['format'] is 'R':
+        if op['format'] == 'R':
             opcode = op['opcode']
             funct = op['funct']
-            if inst.shamt is not '': shamt = inst.shamt
+            if inst.shamt == not '': shamt = inst.shamt
             else: shamt = 0
             rs_code = regs[inst.rs]
             rt_code = regs[inst.rt]
@@ -212,11 +212,11 @@ with open('mcode_file.txt','w') as mcode_file: # opening the output file !!! As 
             mcode_file.write(inst_mcode + '\n')
             print(hex(int(inst_mcode,2)))
             
-        if op['format'] is 'I':
+        if op['format'] == 'I':
             opcode = op['opcode']
             rs_code = regs[inst.rs]
             rt_code = regs[inst.rt]
-            if inst.imm is not '': imm = inst.imm
+            if inst.imm == not '': imm = inst.imm
             else:
                 address = Labels[inst.address]
                 imm = (address - PC)/4
@@ -224,7 +224,7 @@ with open('mcode_file.txt','w') as mcode_file: # opening the output file !!! As 
             mcode_file.write(inst_mcode + '\n')
             print(hex(int(inst_mcode,2)))
             
-        if op['format'] is 'J':
+        if op['format'] == 'J':
             opcode = op['opcode']
             address = Labels[inst.address]
             address = dec2bin(address,32)
