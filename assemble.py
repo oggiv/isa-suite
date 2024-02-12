@@ -1,11 +1,29 @@
 # assemble.py
 # modified version of the mips-assembler-disassembler (original file name: assembler.py) by A-Hemdan https://github.com/A-Hemdan/mips-assembler-disassembler - downloaded on 12 February 2024
 
+# My ISA:
+#  move (and invert?)
+#  add, subtract, and, nor, shift left arithmetic, shift right arithmetic, load word, store word
+#  write immediate
+#  bounce if not zero
+#
+#  mv 00 reg reg - move - copy value from second register to first register
+#  bz 01 reg reg - bounce if not zero - jump to the address in the first register if the value in the second register is not zero
+#  ad 10 000 reg - add - add the value of the accumulator and the value of the register and store the sum in the accumulator
+#  sb 10 001 reg - subtract - subtract the value of the accumulator with the value of the register and store the difference in the accumulator
+#  an 10 010 reg - and - logical bitwise and the value in the accumulator and the value in the register and store the result in the accumulator
+#  nr 10 011 reg - nor - logical bitwise nor the value in the accumulator and the value in the register and store the result in the accumulator
+#  sl 10 100 imm - shift left arithmetic - arithmetically shift the value in the accumulator to the left by the amount given by the immediate value and store the result in the accumulator
+#  sr 10 101 imm - shift right arithmetic - arithmetically shift the value in the accumulator to the right by the amount given by the immediate value and store the result in the accumulator
+#  lw 10 110 reg - load word - fetch the value in memory at the address which is the value in the register, and store it in the accumulator
+#  sw 10 111 reg - store word - store the value of the accumulator in memory on the address that is the value of the register
+#  wi 11 imm     - write immediate - store the unsigned immediate value in the accumulator
+
+
 from pyparsing import *
 from bitstring import BitArray
 
-#helper conversion functions
-
+# Helper conversion functions
 def hex2bin(hex_str, n_bits):
     return bin(int(hex_str, 16))[2:].zfill(n_bits)
 
@@ -17,15 +35,15 @@ def dec2bin(dec, n_bits):
     else:
         return bin(int(dec))[2:].zfill(n_bits)
 
-#MIPS Instruction Set hashtable
+# MIPS Instruction Set hashtable
 
-#style indicates the number of operands and their type as follows:-
-#style : 0 -> operation reg,reg,reg
-#style : 1 -> operation reg,reg,integer
-#style : 2 -> operation reg
-#style : 3 -> operation reg,integer
-#style : 4 -> operation reg,intger(reg)
-#style : 5 -> operation reg,reg,address
+# style indicates the number of operands and their type as follows:-
+# style : 0 -> operation reg,reg,reg
+# style : 1 -> operation reg,reg,integer
+# style : 2 -> operation reg
+# style : 3 -> operation reg,integer
+# style : 4 -> operation reg,intger(reg)
+# style : 5 -> operation reg,reg,address
 
 operations = {
     'add'   : {'format': 'R', 'opcode': '0', 'style': 0, 'funct': '20'},
@@ -62,7 +80,7 @@ operations = {
 
 valid_operations = operations.keys()
 
-#Classifying operations
+# Instruction type classification arrays
 R0 = []
 R1 = []
 R2 = []
@@ -70,7 +88,8 @@ I1 = []
 I3 = []
 I4 = []
 I5 = []
-J = []
+J  = []
+# Add operations to respective instruction type array
 for oper in valid_operations:
     current_oper = operations[oper]
     if current_oper['format'] is 'R':
@@ -87,7 +106,7 @@ for oper in valid_operations:
     if current_oper['format'] is 'J': J.append(oper) 
 
 
-#Registers hashtable
+# Registers hashtable
 regs = {}
 regs['$zero']=0
 regs['$at']=1
@@ -115,8 +134,7 @@ valid_regs = list(regs.keys())
 valid_regs.remove('')
 
 
-#setting grammer rules for parsing
-
+# Setting grammer rules for parsing
 identifier =  Word(alphas+"_",alphanums+"_")
 reg = oneOf(valid_regs)
 comma = Suppress(',')
@@ -147,12 +165,11 @@ Instruction =   ((Label) + (R_format ^ I_format ^ J_format)) ^\
 Instruction.ignore(pythonStyleComment)
 
 #Reading and Parsing assembly input file
-
-print 'Welcome to MIPS Assembler v1.00'
-print 'You should input a text file containing MIPS assembly code.'
-print "Your machine code will be in 'mcode_file.txt' text file while Hex code will be printed on console. "
-filename = raw_input('Please enter the assembly text file name (e.g. assembly.txt) or path: ')
-init_address = raw_input('Please enter the initial address of your assembly code in hexadecimal: ')
+print('Welcome to MIPS Assembler v1.00')
+print('You should input a text file containing MIPS assembly code.')
+print("Your machine code will be in 'mcode_file.txt' text file while Hex code will be printed on console. ")
+filename = input('Please enter the assembly text file name (e.g. assembly.txt) or path: ')
+init_address = input('Please enter the initial address of your assembly code in hexadecimal: ')
 
 assembly_file = open(filename, 'r')
 
@@ -178,7 +195,6 @@ for line in assembly_file:
 assembly_file.close()
 
 #Assembling the parsed code
-
 mcode_file = open('mcode_file.txt','w') #opening the output file
 PC = int(init_address,16)   #converting PC to decimal for ease of use to be used in arithmatic operations
 for inst in Memory:
@@ -198,7 +214,7 @@ for inst in Memory:
         inst_mcode = hex2bin(opcode,6) + dec2bin(rs_code,5) + dec2bin(rt_code,5) + dec2bin(rd_code,5) +\
                      dec2bin(shamt,5) + hex2bin(funct,6)
         mcode_file.write(inst_mcode + '\n')
-        print hex(int(inst_mcode,2))
+        print(hex(int(inst_mcode,2)))
         
     if op['format'] is 'I':
         opcode = op['opcode']
@@ -210,7 +226,7 @@ for inst in Memory:
             imm = (address - PC)/4
         inst_mcode = hex2bin(opcode,6) + dec2bin(rs_code,5) + dec2bin(rt_code,5) + dec2bin(imm,16)
         mcode_file.write(inst_mcode + '\n')
-        print hex(int(inst_mcode,2))
+        print(hex(int(inst_mcode,2)))
         
     if op['format'] is 'J':
         opcode = op['opcode']
@@ -222,6 +238,6 @@ for inst in Memory:
         address = dec2bin(address,26)
         inst_mcode = hex2bin(opcode,6) + address
         mcode_file.write(inst_mcode + '\n')
-        print hex(int(inst_mcode,2))
+        print(hex(int(inst_mcode,2)))
         
 mcode_file.close()
