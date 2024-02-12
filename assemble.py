@@ -18,6 +18,12 @@
 #  lw 10 110 reg - load word - fetch the value in memory at the address which is the value in the register, and store it in the accumulator
 #  sw 10 111 reg - store word - store the value of the accumulator in memory on the address that is the value of the register
 #  wi 11 imm     - write immediate - store the unsigned immediate value in the accumulator
+#
+#  Instruction types ('styles'):
+#   0 A: op reg reg
+#   1 B: op fun reg
+#   2 C: op fun imm
+#   3 D: op imm
 
 
 from pyparsing import *
@@ -45,36 +51,17 @@ def dec2bin(dec, n_bits):
 # style : 5 -> operation reg,reg,address
 
 operations = {
-    'add'   : {'format': 'R', 'opcode': '0', 'style': 0, 'funct': '20'},
-    'addi'  : {'format': 'I', 'opcode': '8', 'style': 1},
-    'addiu' : {'format': 'I', 'opcode': '9', 'style': 1},
-    'addu'  : {'format': 'R', 'opcode': '0', 'style': 0, 'funct': '21'},
-    'and'   : {'format': 'R', 'opcode': '0', 'style': 0, 'funct': '24'},
-    'andi'  : {'format': 'I', 'opcode': 'c', 'style': 1},
-    'beq'   : {'format': 'I', 'opcode': '4', 'style': 5},
-    'bne'   : {'format': 'I', 'opcode': '5', 'style': 5},
-    'j'     : {'format': 'J', 'opcode': '2'},
-    'jal'   : {'format': 'J', 'opcode': '3'},
-    'jr'    : {'format': 'R', 'opcode': '0', 'style': 2, 'funct': '08'},
-    'lbu'   : {'format': 'I', 'opcode': '24', 'style': 4},
-    'lhu'   : {'format': 'I', 'opcode': '25', 'style': 4},
-    'll'    : {'format': 'I', 'opcode': '30', 'style': 1},
-    'lui'   : {'format': 'I', 'opcode': 'f', 'style': 3},
-    'lw'    : {'format': 'I', 'opcode': '23', 'style': 4},
-    'nor'   : {'format': 'R', 'opcode': '0', 'style': 0, 'funct': '27'},
-    'or'    : {'format': 'R', 'opcode': '0', 'style': 0, 'funct': '25'},
-    'ori'   : {'format': 'I', 'opcode': 'd', 'style': 1},
-    'slt'   : {'format': 'R', 'opcode': '0', 'style': 0, 'funct': '2a'},
-    'slti'  : {'format': 'I', 'opcode': 'a', 'style': 1},
-    'sltu'  : {'format': 'R', 'opcode': '0', 'style': 0, 'funct': '2b'},
-    'sll'   : {'format': 'R', 'opcode': '0', 'style': 1, 'funct': '00'},
-    'srl'   : {'format': 'R', 'opcode': '0', 'style': 1, 'funct': '02'},
-    'sb'    : {'format': 'I', 'opcode': '28', 'style': 4},
-    'sc'    : {'format': 'I', 'opcode': '38', 'style': 4},
-    'sh'    : {'format': 'I', 'opcode': '29', 'style': 4},
-    'sw'    : {'format': 'I', 'opcode': '2b', 'style': 4},
-    'sub'   : {'format': 'R', 'opcode': '0', 'style': 0, 'funct': '22'},
-    'subu'  : {'format': 'R', 'opcode': '0', 'style': 0, 'funct': '23'}
+    'mv' : {'format': 'R', 'opcode': 0, 'style': 0},
+    'bz' : {'format': 'R', 'opcode': 1, 'style': 0},
+    'ad' : {'format': 'R', 'opcode': 2, 'style': 1, 'funct': 0},
+    'sb' : {'format': 'R', 'opcode': 2, 'style': 1, 'funct': 1},
+    'an' : {'format': 'R', 'opcode': 2, 'style': 1, 'funct': 2},
+    'nr' : {'format': 'R', 'opcode': 2, 'style': 1, 'funct': 3},
+    'sl' : {'format': 'R', 'opcode': 2, 'style': 2, 'funct': 4},
+    'sr' : {'format': 'R', 'opcode': 2, 'style': 2, 'funct': 5},
+    'lw' : {'format': 'R', 'opcode': 2, 'style': 1, 'funct': 6},
+    'sw' : {'format': 'R', 'opcode': 2, 'style': 1, 'funct': 7},
+    'wi' : {'format': 'R', 'opcode': 3, 'style': 3}
 }
 
 valid_operations = operations.keys()
