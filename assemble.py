@@ -36,7 +36,6 @@ def dec2bin(dec, n_bits):
         return bin(int(dec))[2:].zfill(n_bits)
 
 # MIPS Instruction Set hashtable
-
 # style indicates the number of operands and their type as follows:-
 # style : 0 -> operation reg,reg,reg
 # style : 1 -> operation reg,reg,integer
@@ -164,80 +163,75 @@ Instruction =   ((Label) + (R_format ^ I_format ^ J_format)) ^\
 
 Instruction.ignore(pythonStyleComment)
 
-#Reading and Parsing assembly input file
+# Reading and Parsing assembly input file
 print('Welcome to MIPS Assembler v1.00')
 print('You should input a text file containing MIPS assembly code.')
 print("Your machine code will be in 'mcode_file.txt' text file while Hex code will be printed on console. ")
 filename = input('Please enter the assembly text file name (e.g. assembly.txt) or path: ')
 init_address = input('Please enter the initial address of your assembly code in hexadecimal: ')
 
-assembly_file = open(filename, 'r')
+with open(filename, 'r') as assembly_file:
+    Memory = []
+    Labels = {}
 
-Memory = []
-Labels = {}
-
-line_address = int(init_address,16)
-for line in assembly_file:
-    current_inst = Instruction.parseString(line)
-    if len(current_inst) == 0: 
-        continue
-    if current_inst[0] == '\n': 
-        continue
-    Memory.append(current_inst)
-    if current_inst.label is not '':
-        if current_inst.operation is not '': 
-            Labels[current_inst.label] = line_address
-        else :  
-            Labels[current_inst.label] = line_address
+    line_address = int(init_address,16)
+    for line in assembly_file:
+        current_inst = Instruction.parseString(line)
+        if len(current_inst) == 0: 
             continue
-    line_address += 4 
+        if current_inst[0] == '\n': 
+            continue
+        Memory.append(current_inst)
+        if current_inst.label is not '':
+            if current_inst.operation is not '':
+                Labels[current_inst.label] = line_address
+            else :  
+                Labels[current_inst.label] = line_address
+                continue
+        line_address += 4
 
-assembly_file.close()
-
-#Assembling the parsed code
-mcode_file = open('mcode_file.txt','w') #opening the output file
-PC = int(init_address,16)   #converting PC to decimal for ease of use to be used in arithmatic operations
-for inst in Memory:
-    if inst.operation is '':
-        continue
-    op = operations[inst.operation]
-    PC += 4
-    
-    if op['format'] is 'R':
-        opcode = op['opcode']
-        funct = op['funct']
-        if inst.shamt is not '': shamt = inst.shamt
-        else: shamt = 0
-        rs_code = regs[inst.rs]
-        rt_code = regs[inst.rt]
-        rd_code = regs[inst.rd]
-        inst_mcode = hex2bin(opcode,6) + dec2bin(rs_code,5) + dec2bin(rt_code,5) + dec2bin(rd_code,5) +\
-                     dec2bin(shamt,5) + hex2bin(funct,6)
-        mcode_file.write(inst_mcode + '\n')
-        print(hex(int(inst_mcode,2)))
+# Assembling the parsed code
+with open('mcode_file.txt','w') as mcode_file: # opening the output file !!! As a text file !?!?
+    PC = int(init_address,16)   #converting PC to decimal for ease of use to be used in arithmatic operations
+    for inst in Memory:
+        if inst.operation is '':
+            continue
+        op = operations[inst.operation]
+        PC += 4
         
-    if op['format'] is 'I':
-        opcode = op['opcode']
-        rs_code = regs[inst.rs]
-        rt_code = regs[inst.rt]
-        if inst.imm is not '': imm = inst.imm
-        else:
+        if op['format'] is 'R':
+            opcode = op['opcode']
+            funct = op['funct']
+            if inst.shamt is not '': shamt = inst.shamt
+            else: shamt = 0
+            rs_code = regs[inst.rs]
+            rt_code = regs[inst.rt]
+            rd_code = regs[inst.rd]
+            inst_mcode = hex2bin(opcode,6) + dec2bin(rs_code,5) + dec2bin(rt_code,5) + dec2bin(rd_code,5) +\
+                         dec2bin(shamt,5) + hex2bin(funct,6)
+            mcode_file.write(inst_mcode + '\n')
+            print(hex(int(inst_mcode,2)))
+            
+        if op['format'] is 'I':
+            opcode = op['opcode']
+            rs_code = regs[inst.rs]
+            rt_code = regs[inst.rt]
+            if inst.imm is not '': imm = inst.imm
+            else:
+                address = Labels[inst.address]
+                imm = (address - PC)/4
+            inst_mcode = hex2bin(opcode,6) + dec2bin(rs_code,5) + dec2bin(rt_code,5) + dec2bin(imm,16)
+            mcode_file.write(inst_mcode + '\n')
+            print(hex(int(inst_mcode,2)))
+            
+        if op['format'] is 'J':
+            opcode = op['opcode']
             address = Labels[inst.address]
-            imm = (address - PC)/4
-        inst_mcode = hex2bin(opcode,6) + dec2bin(rs_code,5) + dec2bin(rt_code,5) + dec2bin(imm,16)
-        mcode_file.write(inst_mcode + '\n')
-        print(hex(int(inst_mcode,2)))
-        
-    if op['format'] is 'J':
-        opcode = op['opcode']
-        address = Labels[inst.address]
-        address = dec2bin(address,32)
-        address = address[4:]
-        address = int(address,2)
-        address = address/4
-        address = dec2bin(address,26)
-        inst_mcode = hex2bin(opcode,6) + address
-        mcode_file.write(inst_mcode + '\n')
-        print(hex(int(inst_mcode,2)))
-        
-mcode_file.close()
+            address = dec2bin(address,32)
+            address = address[4:]
+            address = int(address,2)
+            address = address/4
+            address = dec2bin(address,26)
+            inst_mcode = hex2bin(opcode,6) + address
+            mcode_file.write(inst_mcode + '\n')
+            print(hex(int(inst_mcode,2)))
